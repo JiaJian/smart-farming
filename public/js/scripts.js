@@ -153,21 +153,21 @@ socket.on('data-light', (content) => {
 
 socket.on('data-soil-moisture-level', (content) => {
     var status, level, percent;
-    
-    level = content.data;
-    percent = (100 - (level/1023*100)).toFixed(2);
+
+    level = 1023 - content.data;
+    percent = (level/1023 * 100).toFixed(2);
 
     if (level >= 600) {
-        status = "Soil is dry 🏜️";
+        status = "Sensor probably in water 🌊"; 
     }
-    else if (level >= 370 && level < 600) {
+    else if (level >= 200 && level < 600) {
         status = "Soil is humid 💧";
     }
-    else if (level < 370) {
-        status = "Sensor probably in water 🌊";
+    else if (level < 200) {
+        status = "Soil is dry 🏜️";
     }
 
-    let template = "<tr><td>" + content.data + " (" + percent + "%)</td>" +
+    let template = "<tr><td>" + level + " (" + percent + "%)</td>" +
         "<td>" + status + "</td>" +
         "<td>" + moment(content.time).format('MMMM Do YYYY, h:mm:ss a'); + "</td> </tr> ";
 
