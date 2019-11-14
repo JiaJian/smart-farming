@@ -143,7 +143,16 @@ socket.on('data-temperature', (content) => {
 
 
 socket.on('data-light', (content) => {
-    let template = "<tr><td>" + content.data + "</td>" +
+    var light = content.data;
+
+    if (light >= 400) {
+        status = "🌞";
+    }
+    else if (light < 400) {
+        status = "🌙";
+    }
+
+    let template = "<tr><td>" + content.data + " " + status + "</td>" +
         "<td>" + moment(content.time).format('MMMM Do YYYY, h:mm:ss a'); + "</td> </tr> ";
 
     $('#table-light').prepend(template);
