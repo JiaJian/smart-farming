@@ -1,50 +1,108 @@
-const socket = io()
-let data = [];
-let chart = Morris.Line({
-    element: 'chart-temperature',
-    data,
-    xkey: 'y',
-    ykeys: ['a'],
-    postUnits: 'ºC',
-    labels: ['Temp'],
-    yLabelFormat: function (y) { return y.toString() + 'ºC'; },
-    parseTime: false,
-    pointFillColors: ['#ffffff'],
-    pointStrokeColors: ['gray'],
-    lineColors: ['red']
-});
-socket.on('data-temperature', (content) => {
-    let template = "<tr><td>" + content.data + "ºC</td>" +
-        "<td>" + content.time + "</td> </tr> "
-    data.push({
-        y: content.time,
-        a: content.data
-    });
-    $('#table-temperature').append(template);
-    chart.setData(data);
+const socket = io();
+
+var chart = Highcharts.stockChart('chart-temperature', {
+    time: {
+        useUTC: false
+    },
+
+    rangeSelector: {
+        buttons: [{
+            count: 1,
+            type: 'minute',
+            text: '1M'
+        }, {
+            count: 5,
+            type: 'minute',
+            text: '5M'
+        }, {
+            type: 'all',
+            text: 'All'
+        }],
+        inputEnabled: false,
+        selected: 'all'
+    },
+
+    title: {
+        text: 'Real-time Temperature Monitoring'
+    },
+
+    exporting: {
+        enabled: false
+    },
+
+    series: [{
+        name: 'Temperature (ºC)',
+        data: [],
+        type: 'spline',
+        marker: {
+            enabled: true
+        }
+    }],
+
+    credits: {
+        enabled: false
+    }
 });
 
-let data2 = [];
-let chart2 = Morris.Line({
-    element: 'chart-light',
-    data,
-    xkey: 'y',
-    ykeys: ['a'],
-    postUnits: '',
-    labels: ['Light'],
-    yLabelFormat: function (y) { return y.toString() + ''; },
-    parseTime: false,
-    pointFillColors: ['#ffffff'],
-    pointStrokeColors: ['gray'],
-    lineColors: ['red']
+var chart2 = Highcharts.stockChart('chart-light', {
+    time: {
+        useUTC: false
+    },
+
+    rangeSelector: {
+        buttons: [{
+            count: 1,
+            type: 'minute',
+            text: '1M'
+        }, {
+            count: 5,
+            type: 'minute',
+            text: '5M'
+        }, {
+            type: 'all',
+            text: 'All'
+        }],
+        inputEnabled: false,
+        selected: 'all'
+    },
+
+    title: {
+        text: 'Real-time Light Intensity Monitoring'
+    },
+
+    exporting: {
+        enabled: false
+    },
+
+    series: [{
+        name: 'Light Intensity',
+        data: [],
+        type: 'spline',
+        marker: {
+            enabled: true
+        }
+    }],
+
+    credits: {
+        enabled: false
+    }
 });
+
+socket.on('data-temperature', (content) => {
+    let template = "<tr><td>" + content.data + "ºC</td>" +
+        "<td>" + moment(content.time).format('MMMM Do YYYY, h:mm:ss a'); + "</td> </tr> ";
+    
+    $('#table-temperature').prepend(template);
+    chart.series[0].addPoint([content.time, content.data]);
+
+});
+
+
 socket.on('data-light', (content) => {
     let template = "<tr><td>" + content.data + "</td>" +
-        "<td>" + content.time + "</td> </tr> "
-    data2.push({
-        y: content.time,
-        a: content.data
-    });
-    $('#table-light').append(template);
-    chart2.setData(data2);
+        "<td>" + moment(content.time).format('MMMM Do YYYY, h:mm:ss a'); + "</td> </tr> ";
+
+    $('#table-light').prepend(template);
+    chart2.series[0].addPoint([content.time, content.data]);
+
 });

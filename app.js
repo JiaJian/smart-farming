@@ -28,10 +28,11 @@ app.use((req, res) => {
 });
 
 const beta = 3975; // Beta value of the thermistor used by Grove's temperature sensor.
+
 io.on('connection', (socket) => {
-  console.log('[app.js] Connection has been established with browser.');
+  console.log('Connection has been established with browser.');
   socket.on('disconnect', () => {
-    console.log('[app.js] Browser client disconnected from the connection.');
+    console.log('Browser client disconnected from the connection.');
   });
 
   board.on('ready', () => {
@@ -53,11 +54,11 @@ io.on('connection', (socket) => {
     });
   
     lightSensor.on('change', (value) => {
-      console.log("Sending node-light event with value: ", value);
+      console.log("Sending data-light event with value: ", value);
 
       socket.emit('data-light', {
         data: value,
-        time: moment().format('HH:mm:ss')
+        time: (new Date()).getTime() //moment().format()
       });
     });
   
@@ -66,12 +67,12 @@ io.on('connection', (socket) => {
       resistance = (1023-value)*10000/value; // Determine the current resistance of the thermistor based on the sensor value.
       temperature = 1/(Math.log(resistance/10000)/beta+1/298.15) - 273.15;  // Calculate the temperature based on the resistance value.
   
-      temperature = +temperature.toFixed(2);
-      console.log("Sending node-temperature event with value: ", temperature);
+      temperature = +temperature.toFixed(2); // Round off to 2 decimal places.
+      console.log("Sending data-temperature event with value: ", temperature);
 
       socket.emit('data-temperature', {
         data: temperature,
-        time: moment().format('HH:mm:ss')
+        time: (new Date()).getTime() //moment().format()
       });
     });
   });
