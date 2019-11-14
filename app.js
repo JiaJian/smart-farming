@@ -48,9 +48,10 @@ io.on('connection', (socket) => {
       freq: 1000
     });
   
-    const airQualitySensor = new five.Sensor({
-      pin: 'A2',
-      threshold: 1
+    const soilMoistureSensor = new five.Sensor({
+      pin: 'A5',
+      threshold: 1,
+      freq: 1000
     });
   
     lightSensor.on('change', (value) => {
@@ -72,6 +73,15 @@ io.on('connection', (socket) => {
 
       socket.emit('data-temperature', {
         data: temperature,
+        time: (new Date()).getTime() //moment().format()
+      });
+    });
+
+    soilMoistureSensor.on('change', (value) => {
+      console.log("Sending data-soil-moisture-level event with value: ", value);
+
+      socket.emit('data-soil-moisture-level', {
+        data: value,
         time: (new Date()).getTime() //moment().format()
       });
     });
