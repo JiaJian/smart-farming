@@ -181,6 +181,6 @@ socket.on('data-soil-moisture-level', (content) => {
         "<td>" + moment(content.time).format('MMMM Do YYYY, h:mm:ss a'); + "</td> </tr> ";
 
     $('#table-moisture').prepend(template);
-    chart3.series[0].addPoint([content.time, content.data]);
+    chart3.series[0].addPoint([content.time, level]);
 
 });
