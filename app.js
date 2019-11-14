@@ -1,14 +1,15 @@
+const five = require('johnny-five');
+const board = new five.Board();
+
 const express = require('express');
-const app = express();
 const bodyParser = require('body-parser');
-const dweetClient = require('node-dweetio');
+
+const app = express();
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
 const moment = require('moment');
 
-const dweetio = new dweetClient();
-const dweetThing = 'node-temperature-monitor';
-const SERVER_PORT = 3000;
+const SERVER_PORT = 8000;
 
 app.use(bodyParser.urlencoded({
   extended: true
@@ -26,21 +27,56 @@ app.use((req, res) => {
   });
 });
 
+const beta = 3975; // Beta value of the thermistor used by Grove's temperature sensor.
 io.on('connection', (socket) => {
-  console.log('Connection has been established with browser.');
+  console.log('[app.js] Connection has been established with browser.');
   socket.on('disconnect', () => {
-    console.log('Browser client disconnected from the connection.');
+    console.log('[app.js] Browser client disconnected from the connection.');
+  });
+
+  board.on('ready', () => {
+    const lightSensor = new five.Sensor({
+      pin: 'A0',
+      threshold: 1,
+      freq: 1000
+    });
+  
+    const temperatureSensor = new five.Sensor({
+      pin: 'A1',
+      threshold: 1,
+      freq: 1000
+    });
+  
+    const airQualitySensor = new five.Sensor({
+      pin: 'A2',
+      threshold: 1
+    });
+  
+    lightSensor.on('change', (value) => {
+      console.log("Sending node-light event with value: ", value);
+
+      socket.emit('data-light', {
+        data: value,
+        time: moment().format('HH:mm:ss')
+      });
+    });
+  
+    temperatureSensor.on('change', (value) => {
+      let temperature, resistance;
+      resistance = (1023-value)*10000/value; // Determine the current resistance of the thermistor based on the sensor value.
+      temperature = 1/(Math.log(resistance/10000)/beta+1/298.15) - 273.15;  // Calculate the temperature based on the resistance value.
+  
+      temperature = +temperature.toFixed(2);
+      console.log("Sending node-temperature event with value: ", temperature);
+
+      socket.emit('data-temperature', {
+        data: temperature,
+        time: moment().format('HH:mm:ss')
+      });
+    });
   });
 });
 
-dweetio.listen_for(dweetThing, (dweet) => {
-  const data = {
-    sensorData: dweet.content,
-    time: moment().format('HH:mm:ss')
-  };
-  io.emit('sensor-data', data);
-});
-
 http.listen(process.env.PORT || SERVER_PORT, () => {
-  console.log(`Server started on the http://localhost:${SERVER_PORT}`);
+  console.log(`[app.js] Server started on the http://localhost:${SERVER_PORT}`);
 });

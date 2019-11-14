@@ -13,12 +13,12 @@ let chart = Morris.Line({
     pointStrokeColors: ['gray'],
     lineColors: ['red']
 });
-socket.on('sensor-data', (content) => {
-    let template = "<tr><td>" + content.sensorData.temperature + "ºC</td>" +
+socket.on('data-temperature', (content) => {
+    let template = "<tr><td>" + content.data + "ºC</td>" +
         "<td>" + content.time + "</td> </tr> "
     data.push({
         y: content.time,
-        a: content.sensorData.temperature
+        a: content.data
     });
     $('.table-body').append(template);
     chart.setData(data);
