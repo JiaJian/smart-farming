@@ -1,4 +1,4 @@
 <?php
-	echo "Jack Phan";
+	echo "xin wei is so smart";
 
 ?>
